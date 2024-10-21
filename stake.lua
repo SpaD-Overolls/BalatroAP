@@ -803,6 +803,30 @@ function convert_save_data()
 	end
 end
 
+-- custom stake application cus yay
+-- all that old "redundant" code 
+-- wasnt that reduntant after all
+local setup_stakeRef = SMODS.setup_stake
+function SMODS.setup_stake(i)
+	if not isAPProfileLoaded() then
+		SMODS.setup_stake(i)
+	else
+		G.AP.setup_stake(SMODS.stake_from_index(i))
+	end
+end
+
+function G.AP.setup_stake(i)
+	if G.P_STAKES[i].modifiers then
+		G.P_STAKES[i].modifiers()
+	end
+	
+	if G.P_STAKES[i].applied_stakes then
+		for _, k in pairs(G.P_STAKES[i].applied_stakes) do
+			G.AP.setup_stake("stake_"..k)
+		end
+	end
+end
+
 -- =============
 -- GALDUR (UI MOD) COMPAT
 -- =============
