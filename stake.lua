@@ -673,16 +673,8 @@ function G.UIDEF.current_stake()
                 }}
             }}
 
-            local _applied_stakes = {}
-            for i = G.P_CENTER_POOLS.Stake[G.GAME.stake].stake_level - 1, 1, -1 do
-                for k, v in pairs(G.P_CENTER_POOLS.Stake) do
-                    if v.stake_level == i then
-                        _applied_stakes[i] = k
-                        break
-                    end
-                end
-            end
-
+            local _applied_stakes = G.AP.build_stake_chain(G.P_CENTER_POOLS.Stake[i])
+			
             for i = #_applied_stakes, 2, -1 do
                 local _stake_desc = {}
                 local _stake_center = G.P_CENTER_POOLS.Stake[_applied_stakes[i]]
@@ -811,20 +803,31 @@ function SMODS.setup_stake(i)
 	if not isAPProfileLoaded() then
 		SMODS.setup_stake(i)
 	else
-		G.AP.setup_stake(SMODS.stake_from_index(i))
+		G.AP.setup_stake(i)
 	end
 end
 
 function G.AP.setup_stake(i)
-	if G.P_STAKES[i].modifiers then
-		G.P_STAKES[i].modifiers()
-	end
-	
-	if G.P_STAKES[i].applied_stakes then
-		for _, k in pairs(G.P_STAKES[i].applied_stakes) do
-			G.AP.setup_stake("stake_"..k)
+	local chain = G.AP.build_stake_chain(G.P_CENTER_POOLS.Stake[i])
+	for _, s in pairs(chain) do
+		if s.modifiers then
+			s.modifiers()
 		end
 	end
+end
+
+function G.AP.build_stake_chain(stake, chain)
+	if not chain then chain = {} end
+	if not stake then return end
+	
+	table.insert(chain, 1, stake)
+	if stake.applied_stakes then
+		for _, k in pairs(stake.applied_stakes) do
+			G.AP.build_stake_chain(G.P_STAKES["stake_"..key], chain)
+		end
+	end
+	
+	return chain
 end
 
 -- =============
